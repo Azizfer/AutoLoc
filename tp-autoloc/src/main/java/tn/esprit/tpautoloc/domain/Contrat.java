@@ -9,6 +9,11 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "contrat")
 @Getter
@@ -30,10 +35,13 @@ public class Contrat {
     private Reservation reservation;
 
     // Contrat -> Paiement
+
     @OneToMany(
             mappedBy = "contrat",
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
+    @JsonManagedReference("contrat-paiements")
     private List<Paiement> paiements = new ArrayList<>();
+
 }

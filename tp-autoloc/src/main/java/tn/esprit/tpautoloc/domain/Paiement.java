@@ -9,6 +9,7 @@ import tn.esprit.tpautoloc.domain.enums.ModePaiement;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
 @Table(name = "paiement")
@@ -31,5 +32,7 @@ public class Paiement {
     // 6.1 — Paiement → Contrat (ManyToOne)
     @ManyToOne
     @JoinColumn(name = "contrat_id")
+    @JsonBackReference("contrat-paiements")
     private Contrat contrat;
+
 }
