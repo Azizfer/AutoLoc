@@ -3,104 +3,73 @@ package tn.esprit.tpautoloc.web.controller;
 
 import java.util.List;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-import tn.esprit.tpautoloc.domain.Contrat;
 import tn.esprit.tpautoloc.service.IContratService;
+import tn.esprit.tpautoloc.web.dto.ContratDTO;
+import tn.esprit.tpautoloc.web.dto.ContratCreationDTO;
 
 @RestController
 @RequestMapping("/contrats")
 @RequiredArgsConstructor
-@Tag(
-        name = "Contrats",
-        description = "Gestion des contrats de location"
-)
+@Tag(name = "Contrats", description = "Gestion des contrats")
 public class ContratController {
 
     private final IContratService contratService;
 
+    @PostMapping
+    @Operation(summary = "Créer un contrat")
+    public ResponseEntity<ContratDTO> create(
+            @Valid @RequestBody ContratCreationDTO dto) {
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(contratService.create(dto));
+    }
+
     @GetMapping
     @Operation(summary = "Lister tous les contrats")
-    @ApiResponse(
-            responseCode = "200",
-            description = "Liste des contrats récupérée"
-    )
-    public List<Contrat> findAll() {
-        return contratService.findAll();
+    public ResponseEntity<List<ContratDTO>> findAll() {
+
+        return ResponseEntity.ok(contratService.findAll());
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Consulter un contrat par ID")
-    @ApiResponse(
-            responseCode = "200",
-            description = "Contrat trouvé"
-    )
-    @ApiResponse(
-            responseCode = "404",
-            description = "Contrat introuvable"
-    )
-    public Contrat findById(
-            @Parameter(description = "Identifiant du contrat")
+    public ResponseEntity<ContratDTO> findById(
             @PathVariable Long id) {
 
-        return contratService.findById(id);
-    }
-
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "Créer un nouveau contrat")
-    @ApiResponse(
-            responseCode = "201",
-            description = "Contrat créé"
-    )
-    @ApiResponse(
-            responseCode = "400",
-            description = "Données invalides"
-    )
-    public Contrat create(@RequestBody Contrat contrat) {
-        return contratService.create(contrat);
+        return ResponseEntity.ok(contratService.findById(id));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Modifier un contrat")
-    @ApiResponse(
-            responseCode = "200",
-            description = "Contrat modifié"
-    )
-    @ApiResponse(
-            responseCode = "400",
-            description = "Données invalides"
-    )
-    @ApiResponse(
-            responseCode = "404",
-            description = "Contrat introuvable"
-    )
-    public Contrat update(
+    public ResponseEntity<ContratDTO> update(
             @PathVariable Long id,
-            @RequestBody Contrat contrat) {
+            @Valid @RequestBody ContratDTO dto) {
 
-        return contratService.update(id, contrat);
+        return ResponseEntity.ok(contratService.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Supprimer un contrat")
-    @ApiResponse(
-            responseCode = "204",
-            description = "Contrat supprimé"
-    )
-    @ApiResponse(
-            responseCode = "404",
-            description = "Contrat introuvable"
-    )
     public void deleteById(@PathVariable Long id) {
+
         contratService.deleteById(id);
+    }
+
+    @GetMapping("/count")
+    @Operation(summary = "Compter les contrats")
+    public long count() {
+
+        return contratService.count();
     }
 }

@@ -11,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.HashMap;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import tn.esprit.tpautoloc.exception.ResourceNotFoundException;
 
 @RestControllerAdvice
@@ -35,6 +37,23 @@ public class GlobalExceptionHandler {
                 exception.getMessage()
         );
     }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidation(
+            MethodArgumentNotValidException ex) {
+
+        Map<String, String> erreurs = new HashMap<>();
+
+        ex.getBindingResult().getFieldErrors().forEach(error ->
+                erreurs.put(
+                        error.getField(),
+                        error.getDefaultMessage()
+                )
+        );
+
+        return ResponseEntity.badRequest().body(erreurs);
+    }
+
 
     private ResponseEntity<Map<String, Object>> buildResponse(
             HttpStatus status,

@@ -1,11 +1,13 @@
+
 package tn.esprit.tpautoloc;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import tn.esprit.tpautoloc.domain.Agence;
+
 import tn.esprit.tpautoloc.exception.ResourceNotFoundException;
 import tn.esprit.tpautoloc.service.IAgenceService;
+import tn.esprit.tpautoloc.web.dto.AgenceDTO;
 
 import java.util.List;
 
@@ -19,46 +21,73 @@ class AgencyServiceTest {
 
     @Test
     void testAgencyService() {
+
         long countAvant = agenceService.count();
 
         // 1. Créer et enregistrer une agence
-        Agence agence = new Agence();
-        agence.setNom("Agence Tunis Centre");   // à compléter avec les autres attributs de votre entité
+        AgenceDTO agence = new AgenceDTO();
+        agence.setNom("Agence Tunis Centre");
+        agence.setVille("Tunis");
+        agence.setAdresse("Centre-ville Tunis");
+        agence.setTelephone("71234567");
 
-        Agence saved = agenceService.create(agence);
+        AgenceDTO saved = agenceService.create(agence);
 
-        // 2. Afficher l'objet retourné
-        System.out.println("=== Agence enregistrée ===");
-        System.out.println("ID : " + saved.getIdAgence() + " | Nom : " + saved.getNom());
+        // 2. Vérifier et afficher l'agence créée
         assertNotNull(saved);
-        assertNotNull(saved.getIdAgence());
+        assertNotNull(saved.getId());
         assertEquals("Agence Tunis Centre", saved.getNom());
 
+        Long agenceId = saved.getId();
+
+        System.out.println("=== Agence enregistrée ===");
+        System.out.println("ID : " + agenceId
+                + " | Nom : " + saved.getNom());
+
         // 3. findAll()
-        List<Agence> agences = agenceService.findAll();
+        List<AgenceDTO> agences = agenceService.findAll();
+
         System.out.println("=== Liste des agences ===");
-        agences.forEach(a -> System.out.println("ID : " + a.getIdAgence() + " | Nom : " + a.getNom()));
+        agences.forEach(a ->
+                System.out.println("ID : " + a.getId()
+                        + " | Nom : " + a.getNom()));
+
         assertFalse(agences.isEmpty());
 
         // 4. findById()
-        Agence trouvee = agenceService.findById(saved.getIdAgence());
-        System.out.println("=== Agence trouvée par id ===");
-        System.out.println("ID : " + trouvee.getIdAgence() + " | Nom : " + trouvee.getNom());
+        AgenceDTO trouvee = agenceService.findById(agenceId);
+
         assertNotNull(trouvee);
-        assertEquals(saved.getIdAgence(), trouvee.getIdAgence());
+        assertEquals(agenceId, trouvee.getId());
+        assertEquals("Agence Tunis Centre", trouvee.getNom());
+
+        System.out.println("=== Agence trouvée par ID ===");
+        System.out.println("ID : " + trouvee.getId()
+                + " | Nom : " + trouvee.getNom());
 
         // 5. count()
         long countApres = agenceService.count();
-        System.out.println("=== Nombre d'agences : " + countApres + " ===");
+
         assertEquals(countAvant + 1, countApres);
 
-        // 6. deleteById() puis vérification
-        agenceService.deleteById(saved.getIdAgence());
-        System.out.println("=== Agence supprimée (id " + saved.getIdAgence() + ") ===");
+        System.out.println("=== Nombre d'agences : "
+                + countApres + " ===");
 
-        assertThrows(ResourceNotFoundException.class,
-                () -> agenceService.findById(saved.getIdAgence()));
+        // 6. deleteById()
+        agenceService.deleteById(agenceId);
+
+        System.out.println("=== Agence supprimée (ID "
+                + agenceId + ") ===");
+
+        // 7. Vérifier que l'agence n'existe plus
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> agenceService.findById(agenceId)
+        );
+
         assertEquals(countAvant, agenceService.count());
-        System.out.println("=== Vérification : l'agence n'existe plus ===");
+
+        System.out.println(
+                "=== Vérification : l'agence n'existe plus ===");
     }
 }

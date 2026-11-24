@@ -3,100 +3,72 @@ package tn.esprit.tpautoloc.web.controller;
 
 import java.util.List;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-import tn.esprit.tpautoloc.domain.Client;
 import tn.esprit.tpautoloc.service.IClientService;
+import tn.esprit.tpautoloc.web.dto.ClientDTO;
 
 @RestController
 @RequestMapping("/clients")
 @RequiredArgsConstructor
-@Tag(
-        name = "Clients",
-        description = "Gestion des clients AutoLoc"
-)
+@Tag(name = "Clients", description = "Gestion des clients")
 public class ClientController {
 
     private final IClientService clientService;
 
-    @GetMapping
-    @Operation(summary = "Lister tous les clients")
-    @ApiResponse(
-            responseCode = "200",
-            description = "Liste des clients récupérée"
-    )
-    public List<Client> findAll() {
-        return clientService.findAll();
+    @PostMapping
+    @Operation(summary = "Créer un client")
+    public ResponseEntity<ClientDTO> create(
+            @Valid @RequestBody ClientDTO dto) {
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(clientService.create(dto));
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Consulter un client par ID")
-    @ApiResponse(
-            responseCode = "200",
-            description = "Client trouvé"
-    )
-    @ApiResponse(
-            responseCode = "404",
-            description = "Client introuvable"
-    )
-    public Client findById(@PathVariable Long id) {
-        return clientService.findById(id);
+    @Operation(summary = "Obtenir un client par ID")
+    public ResponseEntity<ClientDTO> findById(
+            @PathVariable Long id) {
+
+        return ResponseEntity.ok(clientService.findById(id));
     }
 
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "Créer un client")
-    @ApiResponse(
-            responseCode = "201",
-            description = "Client créé"
-    )
-    @ApiResponse(
-            responseCode = "400",
-            description = "Données invalides"
-    )
-    public Client create(@RequestBody Client client) {
-        return clientService.create(client);
+    @GetMapping
+    @Operation(summary = "Lister tous les clients")
+    public ResponseEntity<List<ClientDTO>> findAll() {
+
+        return ResponseEntity.ok(clientService.findAll());
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Modifier un client")
-    @ApiResponse(
-            responseCode = "200",
-            description = "Client modifié"
-    )
-    @ApiResponse(
-            responseCode = "400",
-            description = "Données invalides"
-    )
-    @ApiResponse(
-            responseCode = "404",
-            description = "Client introuvable"
-    )
-    public Client update(
+    public ResponseEntity<ClientDTO> update(
             @PathVariable Long id,
-            @RequestBody Client client) {
+            @Valid @RequestBody ClientDTO dto) {
 
-        return clientService.update(id, client);
+        return ResponseEntity.ok(clientService.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Supprimer un client")
-    @ApiResponse(
-            responseCode = "204",
-            description = "Client supprimé"
-    )
-    @ApiResponse(
-            responseCode = "404",
-            description = "Client introuvable"
-    )
     public void deleteById(@PathVariable Long id) {
+
         clientService.deleteById(id);
+    }
+
+    @GetMapping("/count")
+    @Operation(summary = "Compter les clients")
+    public long count() {
+
+        return clientService.count();
     }
 }

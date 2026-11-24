@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.time.LocalDate;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "client")
@@ -26,6 +27,9 @@ public class Client {
     private LocalDate dateInscription;
 
     // 3.1 — Client → Reservation (OneToMany)
+
+    @JsonIgnore
     @OneToMany(mappedBy = "client")
     private List<Reservation> reservations;
+
 }

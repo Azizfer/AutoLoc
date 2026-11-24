@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class AgenceRepositoryTests {
 
     @Autowired
-    private IAgenceRepository IAgenceRepository;
+    private IAgenceRepository agenceRepository;
 
     @Test
     void testAgenceRepository() {
@@ -26,7 +26,7 @@ class AgenceRepositoryTests {
         agence.setTelephone("71123456");
 
         // 2. save()
-        Agence saved = IAgenceRepository.save(agence);
+        Agence saved = agenceRepository.save(agence);
         System.out.println("Agence enregistrée : id=" + saved.getIdAgence()
                 + ", nom=" + saved.getNom() + ", ville=" + saved.getVille());
         assertNotNull(saved);
@@ -34,26 +34,26 @@ class AgenceRepositoryTests {
         assertEquals("Tunis", saved.getVille());
 
         // 3. findAll()
-        IAgenceRepository.findAll().forEach(a ->
+        agenceRepository.findAll().forEach(a ->
                 System.out.println("Agence en base : " + a.getIdAgence() + " - " + a.getNom()));
 
         // 4. findById()
         Long id = saved.getIdAgence();
-        Optional<Agence> found = IAgenceRepository.findById(id);
+        Optional<Agence> found = agenceRepository.findById(id);
         assertTrue(found.isPresent());
         System.out.println("findById : " + found.get().getNom());
 
         // 5. existsById()
-        assertTrue(IAgenceRepository.existsById(id));
+        assertTrue(agenceRepository.existsById(id));
 
         // 6. count()
-        long total = IAgenceRepository.count();
+        long total = agenceRepository.count();
         System.out.println("Nombre d'agences : " + total);
         assertTrue(total >= 1);
 
         // 7. deleteById() puis vérification
-        IAgenceRepository.deleteById(id);
-        assertFalse(IAgenceRepository.existsById(id));
+        agenceRepository.deleteById(id);
+        assertFalse(agenceRepository.existsById(id));
         System.out.println("Agence supprimée : " + id);
     }
 }

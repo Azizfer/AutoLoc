@@ -1,20 +1,18 @@
 
 package tn.esprit.tpautoloc;
 
+import java.math.BigDecimal;
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import tn.esprit.tpautoloc.domain.Agence;
-import tn.esprit.tpautoloc.domain.Vehicule;
-import tn.esprit.tpautoloc.domain.enums.CategorieVehicule;
-import tn.esprit.tpautoloc.domain.enums.StatutVehicule;
 import tn.esprit.tpautoloc.exception.ResourceNotFoundException;
 import tn.esprit.tpautoloc.service.IAgenceService;
 import tn.esprit.tpautoloc.service.IVehiculeService;
-
-import java.math.BigDecimal;
-import java.util.List;
+import tn.esprit.tpautoloc.web.dto.AgenceDTO;
+import tn.esprit.tpautoloc.web.dto.VehiculeDTO;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -33,114 +31,120 @@ class VehiculeServiceTest {
         long countAvant = vehiculeService.count();
 
         // 1. Créer une agence
-        Agence agence = new Agence();
-        agence.setNom("Agence AutoLoc Tunis");
+        AgenceDTO agence = new AgenceDTO();
+        agence.setNom("Agence Test Vehicule");
         agence.setVille("Tunis");
-        agence.setAdresse("Avenue Habib Bourguiba");
-        agence.setTelephone("71123456");
+        agence.setAdresse("Centre-ville Tunis");
+        agence.setTelephone("71234567");
 
-        Agence savedAgence = agenceService.create(agence);
+        AgenceDTO agenceSaved = agenceService.create(agence);
+
+        assertNotNull(agenceSaved);
+        assertNotNull(agenceSaved.getId());
+
+        Long agenceId = agenceSaved.getId();
 
         // 2. Créer un véhicule
-        Vehicule vehicule = new Vehicule();
-        vehicule.setImmatriculation("123 TUN 4567");
-        vehicule.setMarque("Peugeot");
-        vehicule.setModele("208");
-        vehicule.setTarifJournalier(
-                new BigDecimal("85.00"));
-        vehicule.setCategorie(
-                CategorieVehicule.CITADINE);
-        vehicule.setStatut(
-                StatutVehicule.DISPONIBLE);
-        vehicule.setAgence(savedAgence);
+        VehiculeDTO vehicule = new VehiculeDTO();
 
-        // 3. Enregistrer le véhicule
-        Vehicule saved = vehiculeService.create(vehicule);
+        vehicule.setMarque("Toyota");
+        vehicule.setModele("Yaris");
+        vehicule.setImmatriculation("123 TU 4567");
+        vehicule.setCategorie("CITADINE");
+        vehicule.setStatut("DISPONIBLE");
+        vehicule.setTarifJournalier(
+                new BigDecimal("100.00"));
+        vehicule.setAgenceId(agenceId);
+
+        VehiculeDTO saved = vehiculeService.create(vehicule);
 
         assertNotNull(saved);
-        assertNotNull(saved.getIdVehicule());
+        assertNotNull(saved.getId());
 
-        Long id = saved.getIdVehicule();
+        Long vehiculeId = saved.getId();
 
         System.out.println("=== Véhicule enregistré ===");
-        System.out.println("ID : " + id
-                + " | Marque : " + saved.getMarque()
-                + " | Modèle : " + saved.getModele());
+        System.out.println(saved.getId()
+                + " - " + saved.getMarque()
+                + " " + saved.getModele());
 
-        // 4. findAll()
-        List<Vehicule> vehicules =
+        // 3. findAll()
+        List<VehiculeDTO> vehicules =
                 vehiculeService.findAll();
+
+        assertFalse(vehicules.isEmpty());
 
         System.out.println("=== Liste des véhicules ===");
 
         vehicules.forEach(v ->
-                System.out.println(v.getIdVehicule()
+                System.out.println(v.getId()
                         + " - " + v.getMarque()
                         + " " + v.getModele()));
 
-        assertFalse(vehicules.isEmpty());
-
-        // 5. findById()
-        Vehicule found = vehiculeService.findById(id);
+        // 4. findById()
+        VehiculeDTO found =
+                vehiculeService.findById(vehiculeId);
 
         assertNotNull(found);
-        assertEquals("Peugeot", found.getMarque());
+        assertEquals(vehiculeId, found.getId());
+        assertEquals("Toyota", found.getMarque());
+        assertEquals(agenceId, found.getAgenceId());
 
-        System.out.println("=== Véhicule trouvé ===");
-        System.out.println(found.getMarque()
-                + " " + found.getModele());
+        // 5. count()
+        assertEquals(
+                countAvant + 1,
+                vehiculeService.count());
 
-        // 6. count()
-        long countApres = vehiculeService.count();
-
-        assertEquals(countAvant + 1, countApres);
-
-        System.out.println("=== Nombre de véhicules : "
-                + countApres + " ===");
-
-        // 7. update()
-        saved.setModele("308");
+        // 6. update()
         saved.setTarifJournalier(
-                new BigDecimal("100.00"));
+                new BigDecimal("150.00"));
 
-        Vehicule updated =
-                vehiculeService.update(id, saved);
+        VehiculeDTO updated =
+                vehiculeService.update(vehiculeId, saved);
 
-        assertEquals("308", updated.getModele());
-        assertEquals(0, new BigDecimal("100.00")
-                .compareTo(updated.getTarifJournalier()));
+        assertNotNull(updated);
+
+        assertEquals(
+                0,
+                new BigDecimal("150.00")
+                        .compareTo(updated.getTarifJournalier()));
 
         System.out.println("=== Véhicule modifié ===");
-        System.out.println("Nouveau modèle : "
-                + updated.getModele());
-        System.out.println("Nouveau tarif : "
+        System.out.println("Tarif : "
                 + updated.getTarifJournalier());
 
-        // 8. deleteById()
-        vehiculeService.deleteById(id);
+        // 7. deleteById()
+        vehiculeService.deleteById(vehiculeId);
 
-        assertThrows(ResourceNotFoundException.class,
-                () -> vehiculeService.findById(id));
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> vehiculeService.findById(vehiculeId));
 
-        assertEquals(countAvant, vehiculeService.count());
+        assertEquals(
+                countAvant,
+                vehiculeService.count());
 
-        System.out.println("=== Véhicule supprimé ===");
+        // 8. Supprimer l'agence de test
+        agenceService.deleteById(agenceId);
 
-        // 9. Supprimer l'agence créée pour le test
-        agenceService.deleteById(savedAgence.getIdAgence());
-
-        System.out.println("=== Agence de test supprimée ===");
+        System.out.println("=== Tests véhicule terminés ===");
     }
 
     @Test
     void testValidationVehicule() {
 
-        // Vérifier qu'un tarif négatif est refusé
-        Vehicule vehicule = new Vehicule();
+        VehiculeDTO vehicule = new VehiculeDTO();
+
+        vehicule.setMarque("Renault");
+        vehicule.setModele("Clio");
+        vehicule.setImmatriculation("999 TU 9999");
+        vehicule.setCategorie("CITADINE");
+        vehicule.setStatut("DISPONIBLE");
         vehicule.setTarifJournalier(
                 new BigDecimal("-50.00"));
 
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(
+                IllegalArgumentException.class,
                 () -> vehiculeService.create(vehicule));
 
         System.out.println(

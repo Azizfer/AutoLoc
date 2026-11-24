@@ -1,72 +1,116 @@
+
 package tn.esprit.tpautoloc.service.impl;
 
 import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import tn.esprit.tpautoloc.domain.Client;
 import tn.esprit.tpautoloc.exception.ResourceNotFoundException;
 import tn.esprit.tpautoloc.repository.IClientRepository;
 import tn.esprit.tpautoloc.service.IClientService;
+import tn.esprit.tpautoloc.web.dto.ClientDTO;
+import tn.esprit.tpautoloc.web.mapper.ClientMapper;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class ClientServiceImpl implements IClientService {
 
     private final IClientRepository clientRepository;
+    private final ClientMapper clientMapper;
 
     @Override
-    public Client create(Client client) {
-        if (client.getIdClient() != null) {
+    public ClientDTO create(ClientDTO dto) {
+
+        if (dto.getId() != null) {
             throw new IllegalArgumentException(
                     "Un nouveau client ne doit pas avoir d'identifiant");
         }
+
+        Client client = clientMapper.toEntity(dto);
+
         verifierClient(client);
-        return clientRepository.save(client);
+
+        Client saved = clientRepository.save(client);
+
+        return clientMapper.toDto(saved);
     }
 
     @Override
-    public Client findById(Long id) {
-        return clientRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Client", id));
+    @Transactional(readOnly = true)
+    public ClientDTO findById(Long id) {
+
+        Client client = clientRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Client", id));
+
+        return clientMapper.toDto(client);
     }
 
     @Override
-    public List<Client> findAll() {
-        return clientRepository.findAll();
+    @Transactional(readOnly = true)
+    public List<ClientDTO> findAll() {
+
+        return clientRepository.findAll()
+                .stream()
+                .map(clientMapper::toDto)
+                .toList();
     }
 
     @Override
-    public Client update(Long id, Client client) {
-        verifierClient(client);
-        Client existant = findById(id);
-        existant.setNom(client.getNom());
-        existant.setPrenom(client.getPrenom());
-        existant.setEmail(client.getEmail());
-        existant.setTelephone(client.getTelephone());
-        existant.setNumPermis(client.getNumPermis());
-        existant.setDateInscription(client.getDateInscription());
-        // la collection reservations n'est pas recopiée
-        return clientRepository.save(existant);
+    public ClientDTO update(Long id, ClientDTO dto) {
+
+        Client existant = clientRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Client", id));
+
+        existant.setNom(dto.getNom());
+        existant.setPrenom(dto.getPrenom());
+        existant.setEmail(dto.getEmail());
+        existant.setTelephone(dto.getTelephone());
+        existant.setNumPermis(dto.getNumPermis());
+
+        // On conserve la date d'inscription existante
+        // ainsi que les réservations associées.
+
+        verifierClient(existant);
+
+        Client saved = clientRepository.save(existant);
+
+        return clientMapper.toDto(saved);
     }
 
     @Override
     public void deleteById(Long id) {
+
         if (!clientRepository.existsById(id)) {
             throw new ResourceNotFoundException("Client", id);
         }
+
         clientRepository.deleteById(id);
     }
 
-    private void verifierClient(Client client) {
-        if (client.getNom() == null || client.getNom().isBlank()) {
-            throw new IllegalArgumentException("Le nom du client est obligatoire");
-        }
-        if (client.getEmail() == null || client.getEmail().isBlank()) {
-            throw new IllegalArgumentException("L'e-mail du client est obligatoire");
-        }
-    }
     @Override
+    @Transactional(readOnly = true)
     public long count() {
         return clientRepository.count();
+    }
+
+    private void verifierClient(Client client) {
+
+        if (client.getNom() == null
+                || client.getNom().isBlank()) {
+            throw new IllegalArgumentException(
+                    "Le nom du client est obligatoire");
+        }
+
+        if (client.getPrenom() == null
+                || client.getPrenom().isBlank()) {
+            throw new IllegalArgumentException(
+                    "Le prénom du client est obligatoire");
+        }
     }
 }

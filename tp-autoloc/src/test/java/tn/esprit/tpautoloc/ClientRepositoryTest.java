@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class ClientRepositoryTests {
 
     @Autowired
-    private IClientRepository IClientRepository;
+    private IClientRepository clientRepository;
 
     @Test
     void testClientRepository() {
@@ -35,32 +35,32 @@ class ClientRepositoryTests {
         c2.setNumPermis("P-300400");
         c2.setDateInscription(LocalDate.now());
 
-        Client saved1 = IClientRepository.save(c1);
-        Client saved2 = IClientRepository.save(c2);
+        Client saved1 = clientRepository.save(c1);
+        Client saved2 = clientRepository.save(c2);
         assertNotNull(saved1.getIdClient());
         assertNotNull(saved2.getIdClient());
         System.out.println("Clients enregistrés : " + saved1.getIdClient()
                 + " et " + saved2.getIdClient());
 
-        IClientRepository.findAll().forEach(c ->
+        clientRepository.findAll().forEach(c ->
                 System.out.println("Client en base : " + c.getIdClient() + " - "
                         + c.getNom() + " " + c.getPrenom()));
 
         Long id1 = saved1.getIdClient();
-        Optional<Client> found = IClientRepository.findById(id1);
+        Optional<Client> found = clientRepository.findById(id1);
         assertTrue(found.isPresent());
         System.out.println("findById : " + found.get().getNom());
 
-        assertTrue(IClientRepository.existsById(id1));
-        assertFalse(IClientRepository.existsById(9999L));
+        assertTrue(clientRepository.existsById(id1));
+        assertFalse(clientRepository.existsById(9999L));
 
-        long total = IClientRepository.count();
+        long total = clientRepository.count();
         System.out.println("Nombre de clients : " + total);
         assertTrue(total >= 2);
 
         // nettoyage pour pouvoir relancer le test
-        IClientRepository.deleteById(id1);
-        IClientRepository.deleteById(saved2.getIdClient());
-        assertFalse(IClientRepository.existsById(id1));
+        clientRepository.deleteById(id1);
+        clientRepository.deleteById(saved2.getIdClient());
+        assertFalse(clientRepository.existsById(id1));
     }
 }
